@@ -44,6 +44,8 @@ function pick($index, $array) {
     return $array[$index];
 }
 
+// Mapped Array Access
+
 function pluck($index, $collection) {
     return map(partial('pick', $index), $collection);
 }
