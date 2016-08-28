@@ -7,7 +7,7 @@ use Prelude\Contract\Monoid;
 use Prelude\Contract\Show;
 use Prelude\Contract\Read;
 
-class Record implements Monad, Monoid, Show, Read
+abstract class Record implements Monad, Monoid, Show, Read
 {
 
     public function apply(Functor $callable)

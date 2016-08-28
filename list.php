@@ -4,6 +4,8 @@ namespace Prelude\Collection;
 
 use Exception;
 use Generator;
+use Prelude\Data\Just;
+use Prelude\Data\Nothing;
 
 // Collections and Mapping
 
@@ -78,11 +80,12 @@ function filter(callable $callable, $collection) {
 }
 
 function head($array) {
-    return take(1, $array);
+    $head = take(1, $array);
+    return count($head) > 0 ? new Just($head) : new Nothing;
 }
 
 function last($array) {
-    return take(-1, $array);
+    $last = take(-1, $array);
 }
 
 function tail($array) {
@@ -115,14 +118,7 @@ function contains($item, $iterator) {
 
 function take($size, $collection) {
     if ($collection instanceof Generator) {
-        if ($size < 0) throw new Exception('Can\'t take items from end of Generators');
-        $count = 0;
-        $array = [];
-        while ($count++ < $size) {
-            $collection->next();
-            $array[] = $collection->current();
-        }
-        return $array;
+        return takeGenerator($size, $collection);
     }
 
     return $size > 0
@@ -130,10 +126,37 @@ function take($size, $collection) {
         : col($collection, array_slice(ary($collection), $size));
 }
 
+
 function drop($size, $collection) {
+    if ($collection instanceof Generator) {
+        return dropGenerator($size, $collection);
+    }
+
     return $size > 0
         ? col($collection, array_slice(ary($collection), $size))
         : col($collection, array_slice(ary($collection), 0, $size));
+}
+
+function takeGenerator($size, Generator $collection) {
+    if ($size < 0) throw new Exception('Can\'t take items from end of Generators');
+    $count = 0;
+    while ($count++ < $size && $collection->valid()) {
+        yield $collection->current();
+        $collection->next();
+    }
+}
+
+function dropGenerator($size, Generator $collection) {
+    if ($size < 0) throw new Exception('Can\'t drop items from end of Generators');
+    $count = 0;
+    while ($count++ < $size && $collection->valid()) {
+        $collection->next();
+    }
+
+    while ($collection->valid()) {
+        yield $collection->current();
+        $collection->next();
+    }
 }
 
 function zip(...$arrays) {
@@ -146,24 +169,31 @@ function zip(...$arrays) {
     return $zipped;
 }
 
-function map_to_tuple($array) {
+function mapToTuple($array) {
     return zip(array_keys(ary($array)), ary($array));
 }
 
-function tuple_to_map($array) {
+function tupleToMap($array) {
     return array_combine(concat(map('Prelude\head', $array)), concat(map('Prelude\last', $array)));
 }
 
-// Interface Helper
+// Lists Generators
 
-function compare_ord(Ord $a, Ord $b) {
-    return $a->compare($b);
+function times(callable $callable, $size) {
+    $count = 0;
+    while ($count++ < $size) yield $callable();
 }
 
-// Interfaces
-
-interface Arrayable
-{
-    public function toArray();
-    public function fromArray(array $array);
+function iterate(callable $callable, $initial) {
+    while(true) yield $initial = $callable($initial);
 }
+
+function repeat($item) {
+    while (true) yield $item;
+}
+
+function cycle($list) {
+    while (true) foreach ($list as $item) yield $item;
+}
+
+var_dump(iterator_to_array(take(5, drop(7, iterate(function ($a) { return $a + 1; }, 0)))));

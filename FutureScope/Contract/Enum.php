@@ -5,5 +5,5 @@ interface Enum
 {
     public function succ();
     public function pred();
-    public function range();
+    public function range($start, $end);
 }

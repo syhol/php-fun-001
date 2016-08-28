@@ -13,7 +13,7 @@ function equals($a, $b) {
     return $a === $b;
 }
 
-function null($item) {
+function not($item) {
     return ! $item;
 }
 
@@ -76,30 +76,6 @@ function unlines($lines) {
     return implode(PHP_EOL, $lines);
 }
 
-// Lists Generators
-
-function times(callable $callable, $size) {
-    $count = 0;
-    while ($count++ < $size) yield $callable();
-}
-
-function iterate(callable $callable, $initial) {
-    while(true) yield $initial = $callable($initial);
-}
-
-function repeat($item) {
-    while (true) yield $item;
-}
-
-function replicate($item, $size) {
-    $count = 0;
-    while ($count++ < $size) yield $item;
-}
-
-function cycle($list) {
-    while (true) foreach ($list as $item) yield $item;
-}
-
 // Functions
 
 function flip(callable $callable) {
@@ -129,6 +105,12 @@ function compose(callable $callable1, callable $callable2) {
 function partial(callable $callable, ...$params) {
     return function (...$more) use($params, $callable) {
         return $callable(...array_merge($params, $more));
+    };
+}
+
+function partialEnd(callable $callable, ...$params) {
+    return function (...$more) use($params, $callable) {
+        return $callable(...array_merge($more, $params));
     };
 }
 
