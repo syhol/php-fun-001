@@ -185,7 +185,7 @@ function times(callable $callable, $size) {
 }
 
 function iterate(callable $callable, $initial) {
-    while(true) yield $initial = $callable($initial);
+    while (true) yield $initial = $callable($initial);
 }
 
 function repeat($item) {
