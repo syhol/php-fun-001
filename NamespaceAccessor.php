@@ -12,6 +12,6 @@ class NamespaceAccessor
     
     public function __call($function, $args)
     {
-        return call_user_func_array($this->namespace . '\' . $function, $args);
+        return call_user_func_array($this->namespace . '\\' . $function, $args);
     }
 }
