@@ -3,7 +3,7 @@ namespace Prelude;
 
 use IteratorAggregate;
 
-class Str impelments IteratorAggregate {
+class Str implements IteratorAggregate {
 
     protected $value;
     
