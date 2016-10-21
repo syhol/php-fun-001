@@ -86,6 +86,7 @@ function head($array) {
 
 function last($array) {
     $last = take(-1, $array);
+    return count($last) > 0 ? new Just($last) : new Nothing;
 }
 
 function tail($array) {
