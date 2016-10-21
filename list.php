@@ -169,11 +169,11 @@ function zip(...$arrays) {
     return $zipped;
 }
 
-function mapToTuple($array) {
+function toPairs($array) {
     return zip(array_keys(ary($array)), ary($array));
 }
 
-function tupleToMap($array) {
+function fromPairs($array) {
     return array_combine(concat(map('Prelude\head', $array)), concat(map('Prelude\last', $array)));
 }
 
