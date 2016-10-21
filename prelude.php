@@ -9,14 +9,6 @@ use ReflectionMethod;
 
 // General
 
-function equals($a, $b) {
-    return $a === $b;
-}
-
-function not($item) {
-    return ! $item;
-}
-
 function id($item) {
     return $item;
 }
@@ -27,6 +19,54 @@ function constant($item) {
 
 function noop() {
     return constant(null);
+}
+
+// Comparison
+
+function equals($a, $b) {
+    return $a === $b;
+}
+
+function not($item) {
+    return ! $item;
+}
+
+function gt($a, $b) {
+    return $a > $b;
+}
+
+function lt($a, $b) {
+    return $a < $b;
+}
+
+function gte($a, $b) {
+    return $a >= $b;
+}
+
+function lte($a, $b) {
+    return $a <= $b;
+}
+
+// Maths
+
+function add($a, $b) {
+    return $a + $b;
+}
+
+function subtract($item) {
+    return $a - $b;
+}
+
+function multiply($a, $b) {
+    return $a * $b;
+}
+
+function divide($a, $b) {
+    return $a / $b;
+}
+
+function modulus($a, $b) {
+    return $a % $b;
 }
 
 // Array Access
