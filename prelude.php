@@ -25,6 +25,10 @@ function constant($item) {
     return function() use ($item) { return $item; };
 }
 
+function noop() {
+    return constant(null);
+}
+
 // Array Access
 
 function insert($index, $value, $array) {
@@ -124,7 +128,7 @@ function method($method) {
     };
 }
 
-function reflect_callable(callable $callable) {
+function reflectCallable(callable $callable) {
     $callable = (is_string($callable) && strpos($callable, '::') !== false)
         ? explode('::', $callable, 2)
         : $callable;
@@ -148,8 +152,18 @@ function reflect_callable(callable $callable) {
     throw new Exception('Could not parse function');
 }
 
+function getArity(callable $callable) {
+    return reflectCallable($callable)->getNumberOfRequiredParameters();
+}
+
+function setArity(callable $callable, $arity) {
+    return function (...$params) use ($arity) {
+        return $callable(...array_slice($params, 0, $arity));
+    };
+}
+
 function curry(callable $callable, $count = null) {
-    $count = is_null($count) ? reflect_callable($callable)->getNumberOfRequiredParameters() : $count;
+    $count = is_null($count) ? getArity($callable) : $count;
     return $count === 0 ? $callable : function (...$params) use($callable, $count) {
         $apply = partial($callable, ...$params);
         return count($params) >= $count ? $apply() : curry($apply, $count - count($params));
