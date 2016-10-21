@@ -128,6 +128,24 @@ function method($method) {
     };
 }
 
+function memoize(callable $callable) {
+    return function(...$params) use ($callable) {
+        static $cache = [];
+        $key = md5(serialize($params));
+        $cache[$key] = isset($cache[$key]) ? $cache[$key] : $callable(...$params);
+        return $cache[$key];
+    };
+}
+
+function once(callable $callable, $default = null) {
+    return function(...$params) use ($callable, $default) {
+        static $run = false;
+        $result = $run ? $default : $callable(...$params) ;
+        $run = true;
+        return $result; 
+    };
+}
+
 function reflectCallable(callable $callable) {
     $callable = (is_string($callable) && strpos($callable, '::') !== false)
         ? explode('::', $callable, 2)
