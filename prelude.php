@@ -146,6 +146,18 @@ function once(callable $callable, $default = null) {
     };
 }
 
+function nthArg($index, $default = null) {
+    return function(...$params) use ($index, $default) {
+        return isset($params[$index]) ? $params[$index] : $default;
+    };
+}
+
+function nthArgs(...$indices) {
+    return function(...$params) use ($indices) {
+        return array_values(array_intersect_key($params, array_flip($indices)));
+    };
+}
+
 function reflectCallable(callable $callable) {
     $callable = (is_string($callable) && strpos($callable, '::') !== false)
         ? explode('::', $callable, 2)
