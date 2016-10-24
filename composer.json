@@ -1,0 +1,27 @@
+{
+    "name": "syhol/php-fun-001",
+    "type": "library",
+    "license": "MIT",
+    "minimum-stability": "dev",
+    "autoload" : {
+        "files" : [
+            "src/prelude.php",
+            "src/list.php",
+            "src/terminal.php",
+            "src/test.php"
+        ]
+    },
+    "bin": [
+        "./bin/fnunit"
+    ],
+    "scripts": {
+        "test": "./bin/fnunit"
+    },
+    "extra": {
+        "fnunit": {
+            "tests": [
+                "./test/*"
+            ]
+        }
+    }
+}
