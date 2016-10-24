@@ -81,12 +81,12 @@ function filter(callable $callable, $collection) {
 
 function head($array) {
     $head = take(1, $array);
-    return count($head) > 0 ? new Just($head) : new Nothing;
+    return count($head) > 0 ? new Just(array_pop($head)) : new Nothing;
 }
 
 function last($array) {
     $last = take(-1, $array);
-    return count($last) > 0 ? new Just($last) : new Nothing;
+    return count($last) > 0 ? new Just(array_pop($last)) : new Nothing;
 }
 
 function tail($array) {
@@ -118,24 +118,32 @@ function contains($item, $iterator) {
 }
 
 function take($size, $collection) {
-    if ($collection instanceof Generator) {
-        return takeGenerator($size, $collection);
-    }
-
-    return $size > 0
-        ? col($collection, array_slice(ary($collection), 0, $size))
-        : col($collection, array_slice(ary($collection), $size));
+    if ($collection instanceof Generator) return takeGenerator($size, $collection);
+    if (is_callable($size)) return takeWhile($size, $collection);
+    return $size >= 0 ? takeStart($size, $collection) : takeEnd(abs($size), $collection);
 }
 
-
 function drop($size, $collection) {
-    if ($collection instanceof Generator) {
-        return dropGenerator($size, $collection);
-    }
+    if ($collection instanceof Generator) return dropGenerator($size, $collection);
+    if (is_callable($size)) return dropWhile($size, $collection);
+    return $size >= 0 ? dropStart($size, $collection) : dropEnd(abs($size), $collection);
+}
 
-    return $size > 0
-        ? col($collection, array_slice(ary($collection), $size))
-        : col($collection, array_slice(ary($collection), 0, $size));
+function takeStart($size, $collection) {
+    return col($collection, array_slice(ary($collection), 0, $size));
+}
+
+function takeEnd($size, $collection) {
+    return col($collection, array_slice(ary($collection), 0 - $size));
+}
+
+function takeWhile(callable $predicate, $collection) {
+    $array = [];
+    foreach (ary($collection) as $item) {
+        if (!$predicate($item)) break;
+        $array[] = $item;
+    }
+    return col($collection, $array);
 }
 
 function takeGenerator($size, Generator $collection) {
@@ -145,6 +153,23 @@ function takeGenerator($size, Generator $collection) {
         yield $collection->current();
         $collection->next();
     }
+}
+
+function dropStart($size, $collection) {
+    return col($collection, array_slice(ary($collection), $size));
+}
+
+function dropEnd($size, $collection) {
+    return col($collection, array_slice(ary($collection), 0, 0 - $size));
+}
+
+function dropWhile(callable $predicate, $collection) {
+    $array = ary($collection);
+    foreach ($array as $key => $item) {
+        if (!$predicate($item)) break;
+        unset($array[$key]);
+    }
+    return col($collection, array_values($array));
 }
 
 function dropGenerator($size, Generator $collection) {
