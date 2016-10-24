@@ -158,8 +158,26 @@ function partialEnd(callable $callable, ...$params) {
     };
 }
 
+function partialArgs(...$params) {
+    return function (callable $callable) use ($params) {
+        return partial($callable, ...$params);
+    }
+}
+
+function partialEndArgs(...$params) {
+    return function (callable $callable) use ($params) {
+        return partialEnd($callable, ...$params);
+    }
+}
+
 function apply(callable $callable, ...$params) {
     return $callable(...$params);
+}
+
+function applyArgs(...$params) {
+    return function (callable $callable) use ($params) {
+        return $callable(...$params);
+    }
 }
 
 function method($method) {
