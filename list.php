@@ -40,16 +40,22 @@ function col($collection, array $array) {
     return $array;
 }
 
-function append($item, $collection) {
+function length($item) {
+    return is_string($item) ? mb_strlen($item) : count($item);
+}
+
+function cons($item, $collection) {
     $array = ary($collection);
-    array_push($array, $item);
+    $array[] = $item;
     return col($collection, $array);
 }
 
-function prepend($item, $collection) {
-    $array = ary($collection);
-    array_unshift($array, $item);
-    return col($collection, $array);
+function append($collection1, $collection2) {
+    return concat([$collection1, $collection1]);
+}
+
+function concat($collections) {
+    return array_merge(...ary(map('Prelude\Collection\ary', $collections)));
 }
 
 function foldr(callable $callable, $initial, $collection) {
@@ -97,12 +103,12 @@ function init($array) {
     return drop(-1, $array);
 }
 
-function reverse($array) {
-    return foldr('Prelude\prepend', [], $array);
+function chunk($size, $array) {
+    return array_chunk($size, $array);
 }
 
-function concat($collection) {
-    return col($collection, array_merge(...ary($collection)));
+function reverse($array) {
+    return foldr('Prelude\Collection\cons', [], $array);
 }
 
 function any(callable $callable, $array) {
