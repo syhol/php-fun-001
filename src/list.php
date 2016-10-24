@@ -4,145 +4,228 @@ namespace Prelude\Collection;
 
 use Exception;
 use Generator;
+use function Prelude\apply;
 use Prelude\Data\Just;
 use Prelude\Data\Nothing;
+use function Prelude\partial;
 
 // Collections and Mapping
 
-function ary($collection) {
-    if (is_array($collection)) {
-        return $collection;
-    } elseif (is_string($collection)) {
-        return str_split($collection);
-    } elseif ($collection instanceof Arrayable) {
-        return $collection->toArray();
-    } elseif ($collection instanceof \Generator) {
-        $array = [];
-        while ($collection->valid()) {
-            $array[] = $collection->current();
-            $collection->next();
-        }
-        return $array;
-    } elseif ($collection instanceof \Iterator) {
-        return iterator_to_array($collection);
-    }
-
-    throw new Exception('Could not convert to array');
-}
-
-function col($collection, array $array) {
-    if (is_string($collection)) {
-        return implode('', $array);
-    } elseif ($collection instanceof Arrayable) {
-        return $collection->fromArray($array);
-    }
-
-    return $array;
-}
-
+/**
+ * @param string|array|\Countable $item
+ * @return int
+ */
 function length($item) {
     return is_string($item) ? mb_strlen($item) : count($item);
 }
 
-function cons($item, $collection) {
-    $array = ary($collection);
+/**
+ * @param $item
+ * @param array $array
+ * @return mixed
+ */
+function cons($item, array $array) {
     $array[] = $item;
-    return col($collection, $array);
+    return $array;
 }
 
-function append($collection1, $collection2) {
-    return concat([$collection1, $collection1]);
+/**
+ * @param array $array1
+ * @param array $array2
+ * @return array
+ */
+function append(array $array1, array $array2) {
+    return concat([$array1, $array2]);
 }
 
-function concat($collections) {
+/**
+ * @param array $collections
+ * @return array
+ */
+function concat(array $collections) {
     return array_merge(...ary(map('Prelude\Collection\ary', $collections)));
 }
 
-function foldr(callable $callable, $initial, $collection) {
-    foreach (ary($collection) as $item) {
+/**
+ * @param callable $callable
+ * @param $initial
+ * @param array $array
+ * @return mixed
+ */
+function foldr(callable $callable, $initial, array $array) {
+    foreach ($array as $item) {
         $initial = $callable($item, $initial);
     }
     return $initial;
 }
 
-function foldl(callable $callable, $initial, $array) {
+/**
+ * @param callable $callable
+ * @param $initial
+ * @param array $array
+ * @return mixed
+ */
+function foldl(callable $callable, $initial, array $array) {
     return foldr(flip($callable), $initial, $array);
 }
 
-function map(callable $callable, $collection) {
-    $array = ary($collection);
+/**
+ * @param callable $callable
+ * @param array $array
+ * @return array
+ */
+function map(callable $callable, array $array) {
     foreach ($array as $key => $value) {
         $array[$key] = $callable($value);
     }
-    return col($collection, $array);
+    return $array;
 }
 
-function filter(callable $callable, $collection) {
-    $array = [];
-    foreach ($collection as $key => $value) {
-        if($callable($value)) $array[$key] = $value;
+/**
+ * @param callable $callable
+ * @param array $array
+ * @return array
+ */
+function filter(callable $callable, array $array) {
+    foreach ($array as $key => $value) {
+        if(!$callable($value)) unset($array[$key]);
     }
-    return col($collection, $array);
+    return $array;
 }
 
+/**
+ * @param $array
+ * @return mixed|null
+ */
 function head($array) {
     $head = take(1, $array);
-    return count($head) > 0 ? new Just(array_pop($head)) : new Nothing;
+    return count($head) > 0 ? array_pop($head) : null;
 }
 
+/**
+ * @param $array
+ * @return mixed|null
+ */
 function last($array) {
     $last = take(-1, $array);
-    return count($last) > 0 ? new Just(array_pop($last)) : new Nothing;
+    return count($last) > 0 ? array_pop($last) : null;
 }
 
+/**
+ * @param $array
+ * @return Generator
+ */
 function tail($array) {
     return drop(1, $array);
 }
 
+/**
+ * @param $array
+ * @return Generator
+ */
 function init($array) {
     return drop(-1, $array);
 }
 
+/**
+ * @param $size
+ * @param $array
+ * @return array
+ */
 function chunk($size, $array) {
     return array_chunk($size, $array);
 }
 
+/**
+ * @param $array
+ * @return array
+ */
 function reverse($array) {
-    return foldr('Prelude\Collection\cons', [], $array);
+    return array_reverse($array);
 }
 
+/**
+ * @param callable $callable
+ * @param $array
+ * @return bool
+ */
 function any(callable $callable, $array) {
     return count(filter($callable, $array)) > 0;
 }
 
+/**
+ * @param callable $callable
+ * @param $array
+ * @return bool
+ */
 function all(callable $callable, $array) {
     return count(filter($callable, $array)) === count($array);
 }
 
+/**
+ * @param $item
+ * @param $iterator
+ * @return bool
+ */
 function contains($item, $iterator) {
-    return any(partial('Prelude\equals', $item), $iterator);
+    return any(apply(partial('Prelude\\equals'), $item), $iterator);
 }
 
+
+/**
+ * @param $item
+ * @param $iterator
+ * @return mixed
+ */
+function pluck($item, $iterator) {
+    return map(apply(partial('Prelude\\pick'), $item), $iterator);
+}
+
+/**
+ * @param $size
+ * @param $collection
+ * @return Generator
+ */
 function take($size, $collection) {
     if ($collection instanceof Generator) return takeGenerator($size, $collection);
     if (is_callable($size)) return takeWhile($size, $collection);
     return $size >= 0 ? takeStart($size, $collection) : takeEnd(abs($size), $collection);
 }
 
+/**
+ * @param $size
+ * @param $collection
+ * @return mixed
+ */
 function drop($size, $collection) {
     if ($collection instanceof Generator) return dropGenerator($size, $collection);
     if (is_callable($size)) return dropWhile($size, $collection);
     return $size >= 0 ? dropStart($size, $collection) : dropEnd(abs($size), $collection);
 }
 
+/**
+ * @param $size
+ * @param $collection
+ * @return mixed
+ */
 function takeStart($size, $collection) {
     return col($collection, array_slice(ary($collection), 0, $size));
 }
 
+/**
+ * @param $size
+ * @param $collection
+ * @return mixed
+ */
 function takeEnd($size, $collection) {
     return col($collection, array_slice(ary($collection), 0 - $size));
 }
 
+/**
+ * @param callable $predicate
+ * @param $collection
+ * @return mixed
+ */
 function takeWhile(callable $predicate, $collection) {
     $array = [];
     foreach (ary($collection) as $item) {
@@ -152,6 +235,12 @@ function takeWhile(callable $predicate, $collection) {
     return col($collection, $array);
 }
 
+/**
+ * @param $size
+ * @param Generator $collection
+ * @return Generator
+ * @throws Exception
+ */
 function takeGenerator($size, Generator $collection) {
     if ($size < 0) throw new Exception('Can\'t take items from end of Generators');
     $count = 0;
@@ -161,14 +250,29 @@ function takeGenerator($size, Generator $collection) {
     }
 }
 
+/**
+ * @param $size
+ * @param $collection
+ * @return mixed
+ */
 function dropStart($size, $collection) {
     return col($collection, array_slice(ary($collection), $size));
 }
 
+/**
+ * @param $size
+ * @param $collection
+ * @return mixed
+ */
 function dropEnd($size, $collection) {
     return col($collection, array_slice(ary($collection), 0, 0 - $size));
 }
 
+/**
+ * @param callable $predicate
+ * @param $collection
+ * @return mixed
+ */
 function dropWhile(callable $predicate, $collection) {
     $array = ary($collection);
     foreach ($array as $key => $item) {
@@ -178,6 +282,12 @@ function dropWhile(callable $predicate, $collection) {
     return col($collection, array_values($array));
 }
 
+/**
+ * @param $size
+ * @param Generator $collection
+ * @return Generator
+ * @throws Exception
+ */
 function dropGenerator($size, Generator $collection) {
     if ($size < 0) throw new Exception('Can\'t drop items from end of Generators');
     $count = 0;
@@ -191,9 +301,13 @@ function dropGenerator($size, Generator $collection) {
     }
 }
 
-function zip(...$arrays) {
+/**
+ * @param \array[] $arrays
+ * @return array
+ */
+function zip(array ...$arrays) {
     $zipped = [];
-    $matrix = map(partial('Prelude\take', min(map('count', $arrays))), $arrays);
+    $matrix = map(apply(partial(min(map('count', $arrays))), 'Prelude\take'), $arrays);
     while(!all('Prelude\not', $matrix)) {
         $zipped[] = concat(map('Prelude\head', $matrix));
         $matrix = map('Prelude\tail', $matrix);
@@ -201,39 +315,73 @@ function zip(...$arrays) {
     return $zipped;
 }
 
-function unzip($array) {
+/**
+ * @param array $array
+ * @return mixed
+ */
+function unzip(array $array) {
     return foldl('array_merge', $array, []);
 }
 
-function toPairs($array) {
-    return zip(array_keys(ary($array)), ary($array));
+/**
+ * @param array $array
+ * @return array
+ */
+function toPairs(array $array) {
+    return zip(array_keys($array), $array);
 }
 
-function fromPairs($array) {
+/**
+ * @param array $array
+ * @return array
+ */
+function fromPairs(array $array) {
     return array_combine(concat(map('Prelude\head', $array)), concat(map('Prelude\last', $array)));
 }
 
 // Lists Generators
 
+/**
+ * @param callable $callable
+ * @param $size
+ * @return Generator
+ */
 function times(callable $callable, $size) {
     $count = 0;
     while ($count++ < $size) yield $callable();
 }
 
+/**
+ * @param callable $callable
+ * @param $initial
+ * @return Generator
+ */
 function iterate(callable $callable, $initial) {
     while (true) yield $initial = $callable($initial);
 }
 
+/**
+ * @param callable $predicate
+ * @param callable $transform
+ * @param $initial
+ * @return Generator
+ */
 function until(callable $predicate, callable $transform, $initial) {
     while (!$predicate($initial)) yield $initial = $transform($initial);
 }
 
+/**
+ * @param $item
+ * @return Generator
+ */
 function repeat($item) {
     while (true) yield $item;
 }
 
+/**
+ * @param $list
+ * @return Generator
+ */
 function cycle($list) {
     while (true) foreach ($list as $item) yield $item;
 }
-
-var_dump(iterator_to_array(take(5, drop(7, iterate(function ($a) { return $a + 1; }, 0)))));

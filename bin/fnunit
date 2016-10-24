@@ -1,0 +1,40 @@
+#!/usr/bin/env php
+<?php
+
+namespace Fnunit\Launcher;
+
+function autoload() {
+    $maybeAutoload = [__DIR__ . '/../../autoload.php', __DIR__ . '/../vendor/autoload.php', __DIR__ . '/vendor/autoload.php'];
+
+    foreach ($maybeAutoload as $file) {
+        if (file_exists($file)) {
+            require $file;
+            return;
+        }
+    }
+}
+
+function getComposer() {
+    $maybeJson = [__DIR__ . '/../../composer.json', __DIR__ . '/../composer.json', __DIR__ . '/composer.json'];
+
+    foreach ($maybeJson as $composerJson) {
+        if (file_exists($composerJson)) {
+            return [
+                realpath($composerJson),
+                json_decode(file_get_contents($composerJson), true)
+            ];
+        }
+    }
+}
+
+autoload();
+
+list($composerFile, $composer) = getComposer();
+
+$patterns = $composer['extra']['fnunit']['tests'];
+foreach ($patterns as $pattern) {
+    chdir(dirname($composerFile));
+    foreach(glob($pattern) as $testFile) {
+        require $testFile;
+    }
+}

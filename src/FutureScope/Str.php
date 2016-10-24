@@ -1,6 +1,7 @@
 <?php
 namespace Prelude;
 
+use ArrayIterator;
 use IteratorAggregate;
 
 class Str implements IteratorAggregate {
@@ -9,7 +10,7 @@ class Str implements IteratorAggregate {
     
     public function _construct($value)
     {
-        $this->value = $value
+        $this->value = $value;
     }
     
     public function getIterator() 
