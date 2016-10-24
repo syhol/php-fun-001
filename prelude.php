@@ -146,38 +146,72 @@ function compose(callable $callable1, callable $callable2) {
     };
 }
 
-function partial(callable $callable, ...$params) {
-    return function (...$more) use($params, $callable) {
-        return $callable(...array_merge($params, $more));
-    };
-}
-
-function partialEnd(callable $callable, ...$params) {
-    return function (...$more) use($params, $callable) {
-        return $callable(...array_merge($more, $params));
-    };
-}
-
-function partialArgs(...$params) {
+/**
+ * Create a partial application function for the start of the parameter list
+ * @example apply(partial(1, 2, 3), $callable)
+ */
+function partial(...$params) {
     return function (callable $callable) use ($params) {
-        return partial($callable, ...$params);
+        return function (...$more) use($params, $callable) {
+            return $callable(...array_merge($params, $more));
+        };
+    };
+}
+
+/**
+ * Create a partial application function for the end of the parameter list
+ * @example apply(partialEnd(1, 2, 3), $callable)
+ */
+function partialEnd(...$params) {
+    return function (callable $callable) use ($params) {
+        return function (...$more) use($params, $callable) {
+            return $callable(...array_merge($more, $params));
+        };
+    };
+}
+
+/**
+ * Create a partial application function for a map of indexed arguments
+ * @example apply(partialAt(1, 2), $callable)
+ */
+function partialAt($index, $param) {
+    return function (callable $callable) use ($params) {
+
     }
 }
 
-function partialEndArgs(...$params) {
+/**
+ * Create a partial application function for a named argument
+ * @example apply(partialAt([1 => 2, 3 => 4]), $callable)
+ */
+function partialsAt($map) {
+    return function (callable $callable) use ($map) {
+
+    }
+}
+
+/**
+ * Create a partial application function for a map of named arguments
+ * @example apply(partialFor('foo', 3), $callable)
+ */
+function partialFor($name, $param) {
     return function (callable $callable) use ($params) {
-        return partialEnd($callable, ...$params);
+
+    }
+}
+
+/**
+ * Create a partial application function for a map of named arguments
+ * @example apply(partialsFor(['bob' => 2, 'foo' => 4]), $callable)
+ */
+function partialsFor($map) {
+    return function (callable $callable) use ($map) {
+
     }
 }
 
 function apply(callable $callable, ...$params) {
     return $callable(...$params);
-}
-
-function applyArgs(...$params) {
-    return function (callable $callable) use ($params) {
-        return $callable(...$params);
-    }
 }
 
 function method($method) {
