@@ -170,6 +170,10 @@ function zip(...$arrays) {
     return $zipped;
 }
 
+function unzip($array) {
+    return foldl('array_merge', $array, []);
+}
+
 function toPairs($array) {
     return zip(array_keys(ary($array)), ary($array));
 }
@@ -187,6 +191,10 @@ function times(callable $callable, $size) {
 
 function iterate(callable $callable, $initial) {
     while (true) yield $initial = $callable($initial);
+}
+
+function until(callable $predicate, callable $transform, $initial) {
+    while (!$predicate($initial)) yield $initial = $transform($initial);
 }
 
 function repeat($item) {
