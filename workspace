@@ -8,7 +8,10 @@ if [ "$1" = "entrypoint" ]; then
   sh
 else
   docker run \
-	-it --rm -v $(pwd):/src -w /src -u $(id -u):$(id -g) \
+	--interactive --tty --rm \
+	--volume $(pwd):/src -w /src \
+	--user $(id -u):$(id -g) \
+	--env "PS1=dev@php-λ \w $ " \
 	php:7.1-rc-alpine \
 	./workspace entrypoint
 fi
