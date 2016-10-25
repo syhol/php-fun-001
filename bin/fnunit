@@ -11,8 +11,8 @@ function findFile(array $maybeFiles) {
 
 function loadAutoload($autoloadFile) {
     return $autoloadFile
-        ? require $file
-        : throw new \Exception('No Autoload found. Have you done a `$ composer install` lately?');
+        ? requireFile($autoloadFile)
+        : throwMessage('No Autoload found. Have you done a `$ composer install` lately?');
 }
 
 function autoload(array $files) {
@@ -21,8 +21,8 @@ function autoload(array $files) {
 
 function loadComposer($composerFile) {
     return $composerFile
-        ? [$composerFile, json_decode(file_get_contents($composerFile), true)];
-        : throw new \Exception('No compose.json found. Do you even have a project?');
+        ? [$composerFile, json_decode(file_get_contents($composerFile), true)]
+        : throwMessage('No compose.json found. Do you even have a project?');
 }
 
 function composer(array $files) {
@@ -36,10 +36,12 @@ autoload($autoloads);
 list($composerFile, $composerJson) = composer($composers);
 chdir(dirname($composerFile));
 
-$require = function($testFile) { require $testFile; };
-$concat = function(...$arrays) { return array_merge(...$arrays); };
+function requireFile($file) { require $file; };
+function includeFile($file) { include $file; };
+function throwMessage($message) { throw new \Exception($message); };
+function concat(...$arrays) { return array_merge(...$arrays); };
 
 $patterns = $composerJson['extra']['fnunit']['tests'];
-$files = $patterns ? $concat(array_map('glob', $patterns)) : glob('./fnunit/*'); 
+$files = $patterns ? concat(...array_map('glob', $patterns)) : glob('./fnunit/*');
 
-array_map($require, $files);
+array_map('Fnunit\Launcher\includeFile', $files);

@@ -7,7 +7,6 @@
         "files" : [
             "src/prelude.php",
             "src/list.php",
-            "src/terminal.php",
             "src/test.php"
         ]
     },
