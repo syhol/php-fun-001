@@ -47,6 +47,11 @@ function concat(...$arrays) { return array_merge(...$arrays); };
 $patterns = $composerJson['extra']['fnunit']['tests'];
 $files = $patterns ? concat(...array_map('glob', $patterns)) : glob('./fnunit/*');
 
+global $passed;
+global $failed;
+$passed = 0;
+$failed = 0;
+
 $start = microtime(true);
 array_map('Fnunit\Launcher\includeFile', $files);
 $end = microtime(true);
@@ -55,6 +60,6 @@ writeCyan("  *");
 writeCyan("  | ");
 writeCyan("  *-*-> ", false); writeBoldYellow("FnUnit Finished");
 writeCyan("    |-> ", false); writeYellow("Time: " . round(($end - $start) * 1000, 3) . "ms / " . round(($end - $start), 6) . "s");
-writeCyan("    |-> ", false); writeYellow("Tests: 293");
-writeCyan("    |-> ", false); writeYellow("Passed: 293");
-writeCyan("    |-> ", false); writeYellow("Failed: 33");
+writeCyan("    |-> ", false); writeYellow("Tests: " . ($passed + $failed));
+writeCyan("    |-> ", false); writeYellow("Passed: " . $passed );
+writeCyan("    |-> ", false); writeYellow("Failed: " . $failed);

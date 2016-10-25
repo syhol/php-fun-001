@@ -49,7 +49,7 @@ function parseErrorCode($error) {
 
 function handleError(array $error) {
     writeRed('  |');
-    writeRed("  |> Error   : \033[1;31m" . parseErrorCode($error['0']));
+    writeRed("  |> \e[1;31mError - " . parseErrorCode($error['0']));
     writeRed('  |> File    : ' . $error['2'] . ':' . $error['3']);
     writeRed('  |> Message : ' . $error['1']);
     writeRed('  |> Trace   :');
@@ -60,10 +60,10 @@ function handleError(array $error) {
 
 function handleException(Exception $exception) {
     writeRed('  |');
-    writeRed("  |> Exception : \033[1;31m" . get_class($exception));
-    writeRed('  |> File      : ' . $exception->getFile() . ':' . $exception->getLine());
-    writeRed('  |> Message   : ' . $exception->getMessage());
-    writeRed('  |> Trace     :');
+    writeRed("  |> \e[1;31mException - " . get_class($exception));
+    writeRed('  |> File    : ' . $exception->getFile() . ':' . $exception->getLine());
+    writeRed('  |> Message : ' . $exception->getMessage());
+    writeRed('  |> Trace   :');
     $trace = explode(PHP_EOL, $exception->getTraceAsString());
     foreach ($trace as $item)
         writeRed('  |>   ' . $item);
@@ -74,10 +74,14 @@ function handleFail($function, array $errors, Exception $exception = null) {
     array_map('Prelude\Test\handleError', $errors);
     if ($exception) handleException($exception);
     writeRed('  |');
+    global $failed;
+    $failed++;
     return false;
 }
 
 function handleSuccess($function) {
+    global $passed;
+    $passed++;
     writeGreen(" \u{2714} " . $function);
     return true;
 }
