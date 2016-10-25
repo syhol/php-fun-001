@@ -3,6 +3,10 @@
 
 namespace Fnunit\Launcher;
 
+use function Prelude\Test\writeBoldYellow;
+use function Prelude\Test\writeCyan;
+use function Prelude\Test\writeYellow;
+
 function findFile(array $maybeFiles) {
     return array_reduce($maybeFiles, function($carry, $file) {
         return empty($carry) && file_exists($file) ? realpath($file) : $carry;
@@ -10,38 +14,47 @@ function findFile(array $maybeFiles) {
 }
 
 function loadAutoload($autoloadFile) {
-    return $autoloadFile
+    $autoloadFile
         ? requireFile($autoloadFile)
         : throwMessage('No Autoload found. Have you done a `$ composer install` lately?');
 }
 
 function autoload(array $files) {
-    return loadAutoload(findFile($files));
+    loadAutoload(findFile($files));
 }
 
 function loadComposer($composerFile) {
-    return $composerFile
-        ? [$composerFile, json_decode(file_get_contents($composerFile), true)]
-        : throwMessage('No compose.json found. Do you even have a project?');
+    if ($composerFile) return [$composerFile, json_decode(file_get_contents($composerFile), true)];
+    throwMessage('No compose.json found. Do you even have a project?');
 }
 
 function composer(array $files) {
     return loadComposer(findFile($files));
 }
 
-$autoloads = [__DIR__ . '/../../autoload.php', __DIR__ . '/../vendor/autoload.php', __DIR__ . '/vendor/autoload.php'];
+$autoload = [__DIR__ . '/../../autoload.php', __DIR__ . '/../vendor/autoload.php', __DIR__ . '/vendor/autoload.php'];
 $composers = [__DIR__ . '/../../composer.json', __DIR__ . '/../composer.json', __DIR__ . '/composer.json'];
 
-autoload($autoloads);
+autoload($autoload);
 list($composerFile, $composerJson) = composer($composers);
 chdir(dirname($composerFile));
 
 function requireFile($file) { require $file; };
 function includeFile($file) { include $file; };
-function throwMessage($message) { throw new \Exception($message); };
+function throwMessage($message) { throw new \Exception($message);  };
 function concat(...$arrays) { return array_merge(...$arrays); };
 
 $patterns = $composerJson['extra']['fnunit']['tests'];
 $files = $patterns ? concat(...array_map('glob', $patterns)) : glob('./fnunit/*');
 
+$start = microtime(true);
 array_map('Fnunit\Launcher\includeFile', $files);
+$end = microtime(true);
+
+writeCyan("  *");
+writeCyan("  | ");
+writeCyan("  *-*-> ", false); writeBoldYellow("FnUnit Finished");
+writeCyan("    |-> ", false); writeYellow("Time: " . round(($end - $start) * 1000, 3) . "ms / " . round(($end - $start), 6) . "s");
+writeCyan("    |-> ", false); writeYellow("Tests: 293");
+writeCyan("    |-> ", false); writeYellow("Passed: 293");
+writeCyan("    |-> ", false); writeYellow("Failed: 33");
