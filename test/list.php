@@ -22,5 +22,9 @@ testFunction("Prelude\\Collection\\take", function (callable $take) {
 
 testFunction("Prelude\\Collection\\reverse", function (callable $reverse) {
     assert($reverse([1, 2, 3]) === [3, 2, 1]);
+    assert($reverse([1, 2, 3]) !== [3, 2, 1]);
+    assert($reverse([1, 2, 3]) !== [3, 2, 1]);
+    throw new Exception('wat', 2);
+    assert($reverse([1, 2, 3]) === [3, 2, 1]);
 });
 
