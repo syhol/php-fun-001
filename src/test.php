@@ -27,6 +27,14 @@ function writeBoldRed($string, $printEol = true) {
 function writeCyan($string, $printEol = true) {
     echo "\033[0;36m$string\033[0m" . ($printEol ? PHP_EOL : '');
 }
+function writeSumary($title, $time, $passed, $failed) {
+    writeCyan(" " . str_repeat('#', 18 + strlen($title)));
+    writeCyan("     |--> ", false); writeBoldYellow($title);
+    writeCyan("     |--> ", false); writeYellow("Time: " . round($time * 1000, 3) . "ms");
+    writeCyan("     |--> ", false); writeYellow("Tests: " . ($passed + $failed));
+    writeCyan("     |--> ", false); writeYellow("Passed: " . $passed);
+    writeCyan("     |--> ", false); writeYellow("Failed: " . $failed);
+}
 
 function parseErrorCode($error) {
     switch($error){

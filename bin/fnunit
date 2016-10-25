@@ -3,10 +3,6 @@
 
 namespace Fnunit\Launcher;
 
-use function Prelude\Test\writeBoldYellow;
-use function Prelude\Test\writeCyan;
-use function Prelude\Test\writeYellow;
-
 function findFile(array $maybeFiles) {
     return array_reduce($maybeFiles, function($carry, $file) {
         return empty($carry) && file_exists($file) ? realpath($file) : $carry;
@@ -53,13 +49,9 @@ $passed = 0;
 $failed = 0;
 
 $start = microtime(true);
+\Prelude\Test\writeCyan(" # ", false);
+\Prelude\Test\writeBoldYellow("FnUnit", false);
+\Prelude\Test\writeYellow(" - v0.1.0");
 array_map('Fnunit\Launcher\includeFile', $files);
 $end = microtime(true);
-
-writeCyan("  *");
-writeCyan("  | ");
-writeCyan("  *-*-> ", false); writeBoldYellow("FnUnit Finished");
-writeCyan("    |-> ", false); writeYellow("Time: " . round(($end - $start) * 1000, 3) . "ms / " . round(($end - $start), 6) . "s");
-writeCyan("    |-> ", false); writeYellow("Tests: " . ($passed + $failed));
-writeCyan("    |-> ", false); writeYellow("Passed: " . $passed );
-writeCyan("    |-> ", false); writeYellow("Failed: " . $failed);
+\Prelude\Test\writeSumary('FnUnit Finished', $end - $start, $passed, $failed);
