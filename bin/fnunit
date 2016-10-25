@@ -3,38 +3,43 @@
 
 namespace Fnunit\Launcher;
 
-function autoload() {
-    $maybeAutoload = [__DIR__ . '/../../autoload.php', __DIR__ . '/../vendor/autoload.php', __DIR__ . '/vendor/autoload.php'];
-
-    foreach ($maybeAutoload as $file) {
-        if (file_exists($file)) {
-            require $file;
-            return;
-        }
-    }
+function findFile(array $maybeFiles) {
+    return array_reduce($maybeFiles, function($carry, $file) {
+        return empty($carry) && file_exists($file) ? realpath($file) : $carry;
+    }, false);
 }
 
-function getComposer() {
-    $maybeJson = [__DIR__ . '/../../composer.json', __DIR__ . '/../composer.json', __DIR__ . '/composer.json'];
-
-    foreach ($maybeJson as $composerJson) {
-        if (file_exists($composerJson)) {
-            return [
-                realpath($composerJson),
-                json_decode(file_get_contents($composerJson), true)
-            ];
-        }
-    }
+function loadAutoload($autoloadFile) {
+    return $autoloadFile
+        ? require $file
+        : throw new \Exception('No Autoload found. Have you done a `$ composer install` lately?');
 }
 
-autoload();
-
-list($composerFile, $composer) = getComposer();
-
-$patterns = $composer['extra']['fnunit']['tests'];
-foreach ($patterns as $pattern) {
-    chdir(dirname($composerFile));
-    foreach(glob($pattern) as $testFile) {
-        require $testFile;
-    }
+function autoload(array $files) {
+    return loadAutoload(findFile($files));
 }
+
+function loadComposer($composerFile) {
+    return $composerFile
+        ? [$composerFile, json_decode(file_get_contents($composerFile), true)];
+        : throw new \Exception('No compose.json found. Do you even have a project?');
+}
+
+function composer(array $files) {
+    return loadComposer(findFile($files));
+}
+
+$autoloads = [__DIR__ . '/../../autoload.php', __DIR__ . '/../vendor/autoload.php', __DIR__ . '/vendor/autoload.php'];
+$composers = [__DIR__ . '/../../composer.json', __DIR__ . '/../composer.json', __DIR__ . '/composer.json'];
+
+autoload($autoloads);
+list($composerFile, $composerJson) = composer($composers);
+chdir(dirname($composerFile));
+
+$require = function($testFile) { require $testFile; };
+$concat = function(...$arrays) { return array_merge(...$arrays); };
+
+$patterns = $composerJson['extra']['fnunit']['tests'];
+$files = $patterns ? $concat(array_map('glob', $patterns)) : glob('./fnunit/*'); 
+
+array_map($require, $files);
