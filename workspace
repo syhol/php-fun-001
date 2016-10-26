@@ -11,7 +11,7 @@ else
 	--interactive --tty --rm \
 	--volume $(pwd):/src -w /src \
 	--user $(id -u):$(id -g) \
-	--env "PS1=dev@php-λ \w $ " \
+	--env "PS1=\e[1;32mdev@php-λ \e[1;34m\w\e[1;39m $ \e[0;39m" \
 	php:7.1-rc-alpine \
 	./workspace entrypoint
 fi
