@@ -49,9 +49,7 @@ $passed = 0;
 $failed = 0;
 
 $start = microtime(true);
-\Prelude\Test\writeCyan(" # ", false);
-\Prelude\Test\writeBoldYellow("FnUnit", false);
-\Prelude\Test\writeYellow(" - v0.1.0");
+\Prelude\Test\writeIntro("FnUnit", "0.1.0");
 array_map('Fnunit\Launcher\includeFile', $files);
 $end = microtime(true);
 \Prelude\Test\writeSumary('FnUnit Finished', $end - $start, $passed, $failed);

@@ -4,36 +4,42 @@ namespace Prelude\Test;
 
 use Exception;
 
-function writeGreen($string, $printEol = true) {
-    echo "\033[32m$string\033[0m" . ($printEol ? PHP_EOL : '');
+function green($string) {
+    return "\033[32m$string\033[0m";
 }
 
-function writeRed($string, $printEol = true) {
-    echo "\033[31m$string\033[0m" . ($printEol ? PHP_EOL : '');
+function red($string) {
+    return "\033[31m$string\033[0m";
 }
 
-function writeYellow($string, $printEol = true) {
-    echo "\033[0;33m$string\033[0m" . ($printEol ? PHP_EOL : '');
+function yellow($string) {
+    return "\033[0;33m$string\033[0m";
 }
 
-function writeBoldYellow($string, $printEol = true) {
-    echo "\033[1;33m$string\033[0m" . ($printEol ? PHP_EOL : '');
+function boldYellow($string) {
+    return "\033[1;33m$string\033[0m";
 }
 
-function writeBoldRed($string, $printEol = true) {
-    echo "\033[1;31m$string\033[0m" . ($printEol ? PHP_EOL : '');
+function boldRed($string) {
+    return "\033[1;31m$string\033[0m";
 }
 
-function writeCyan($string, $printEol = true) {
-    echo "\033[0;36m$string\033[0m" . ($printEol ? PHP_EOL : '');
+function cyan($string) {
+    return "\033[0;36m$string\033[0m";
 }
+
+function writeIntro($title, $version) {
+    $heading = "$title - v$version";
+    echo boldYellow(" $heading ") . cyan(str_repeat('#', 32 - strlen($heading))) . PHP_EOL;
+}
+
 function writeSumary($title, $time, $passed, $failed) {
-    writeCyan(" " . str_repeat('#', 18 + strlen($title)));
-    writeCyan("     |--> ", false); writeBoldYellow($title);
-    writeCyan("     |--> ", false); writeYellow("Time: " . round($time * 1000, 3) . "ms");
-    writeCyan("     |--> ", false); writeYellow("Tests: " . ($passed + $failed));
-    writeCyan("     |--> ", false); writeYellow("Passed: " . $passed);
-    writeCyan("     |--> ", false); writeYellow("Failed: " . $failed);
+    echo cyan(" " . str_repeat('#', 32 - strlen($title))) . PHP_EOL .
+         cyan("     |--> ") . boldYellow($title) . PHP_EOL .
+         cyan("     |--> ") . yellow("Time: " . round($time * 1000, 3) . "ms") . PHP_EOL .
+         cyan("     |--> ") . yellow("Tests: " . ($passed + $failed)) . PHP_EOL .
+         cyan("     |--> ") . yellow("Passed: " . $passed) . PHP_EOL .
+         cyan("     |--> ") . yellow("Failed: " . $failed) . PHP_EOL;
 }
 
 function parseErrorCode($error) {
@@ -51,37 +57,33 @@ function parseErrorCode($error) {
         case E_USER_NOTICE:         return 'User Notice';            break;
         case E_STRICT:              return 'Strict Notice';          break;
         case E_RECOVERABLE_ERROR:   return 'Recoverable Error';      break;
-        default:                    return "Unknown error ($errno)"; break;
+        default:                    return "Unknown error ($error)"; break;
     }
 }
 
 function handleError(array $error) {
-    writeRed('  |');
-    writeRed("  |> \e[1;31mError - " . parseErrorCode($error['0']));
-    writeRed('  |> File    : ' . $error['2'] . ':' . $error['3']);
-    writeRed('  |> Message : ' . $error['1']);
-    writeRed('  |> Trace   :');
-    $trace = explode(PHP_EOL, trim($error['trace']));
-    foreach ($trace as $item)
-        writeRed('  |>   ' . $item);
+    echo red('  |') . PHP_EOL .
+         red("  |> \e[1;31mError - " . parseErrorCode($error['0'])) . PHP_EOL .
+         red('  |> File    : ' . $error['2'] . ':' . $error['3']) . PHP_EOL .
+         red('  |> Message : ' . $error['1']) . PHP_EOL .
+         red('  |> Trace   :') . PHP_EOL .
+         red('  |>   ' . implode(PHP_EOL . '  |>   ', explode(PHP_EOL, trim($error['trace'])))) . PHP_EOL;
 }
 
 function handleException(Exception $exception) {
-    writeRed('  |');
-    writeRed("  |> \e[1;31mException - " . get_class($exception));
-    writeRed('  |> File    : ' . $exception->getFile() . ':' . $exception->getLine());
-    writeRed('  |> Message : ' . $exception->getMessage());
-    writeRed('  |> Trace   :');
-    $trace = explode(PHP_EOL, $exception->getTraceAsString());
-    foreach ($trace as $item)
-        writeRed('  |>   ' . $item);
+    echo red('  |') . PHP_EOL .
+         red("  |> \e[1;31mException - " . get_class($exception)) . PHP_EOL .
+         red('  |> File    : ' . $exception->getFile() . ':' . $exception->getLine()) . PHP_EOL .
+         red('  |> Message : ' . $exception->getMessage()) . PHP_EOL .
+         red('  |> Trace   :') . PHP_EOL .
+         red('  |>   ' . implode(PHP_EOL . '  |>   ', explode(PHP_EOL, trim($exception->getTraceAsString())))) . PHP_EOL;
 }
 
 function handleFail($function, array $errors, Exception $exception = null) {
-    writeRed(" \u{2718} " . $function);
+    echo red(" \u{2718} " . $function) . PHP_EOL;
     array_map('Prelude\Test\handleError', $errors);
     if ($exception) handleException($exception);
-    writeRed('  |');
+    echo red('  |') . PHP_EOL;
     global $failed;
     $failed++;
     return false;
@@ -90,7 +92,7 @@ function handleFail($function, array $errors, Exception $exception = null) {
 function handleSuccess($function) {
     global $passed;
     $passed++;
-    writeGreen(" \u{2714} " . $function);
+    echo green(" \u{2714} " . $function) . PHP_EOL;
     return true;
 }
 

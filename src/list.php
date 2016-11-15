@@ -205,6 +205,22 @@ function elem($item, $iterator) {
 }
 
 /**
+ * @param $iterator
+ * @return mixed
+ */
+function keys($iterator) {
+    return array_keys($iterator);
+}
+
+/**
+ * @param $iterator
+ * @return mixed
+ */
+function values($iterator) {
+    return array_values($iterator);
+}
+
+/**
  * @param $item
  * @param $iterator
  * @return mixed
