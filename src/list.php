@@ -5,8 +5,7 @@ namespace Prelude\Collection;
 use Exception;
 use Generator;
 use function Prelude\apply;
-use Prelude\Data\Just;
-use Prelude\Data\Nothing;
+use function Prelude\flip;
 use function Prelude\partial;
 
 // Collections and Mapping
@@ -30,12 +29,22 @@ function cons($item, array $array) {
 }
 
 /**
- * @param array $array1
- * @param array $array2
+ * @param array $array
  * @return array
  */
-function append(array $array1, array $array2) {
-    return concat([$array1, $array2]);
+function uncons(array $array) {
+    $item = array_pop($array);
+    return [$item, $array];
+}
+
+/**
+ * @param array $array1
+ * @param array $array2
+ * @param \array[] $more
+ * @return array
+ */
+function append(array $array1, array $array2, array ...$more) {
+    return array_merge($array1, $array2, ...$more);
 }
 
 /**
@@ -43,7 +52,7 @@ function append(array $array1, array $array2) {
  * @return array
  */
 function concat(array $collections) {
-    return array_merge(...ary(map('Prelude\Collection\ary', $collections)));
+    return array_merge(...$collections);
 }
 
 /**
@@ -145,6 +154,30 @@ function reverse($array) {
 }
 
 /**
+ * @param $array
+ * @return integer
+ */
+function sum($array) {
+    return foldl('Prelude\add', 0, $array);
+}
+
+/**
+ * @param $array
+ * @return integer
+ */
+function product($array) {
+    return foldl('Prelude\multiply', 1, $array);
+}
+
+/**
+ * @param $array
+ * @return array
+ */
+function nub($array) {
+    return array_unique($array);
+}
+
+/**
  * @param callable $callable
  * @param $array
  * @return bool
@@ -167,10 +200,9 @@ function all(callable $callable, $array) {
  * @param $iterator
  * @return bool
  */
-function contains($item, $iterator) {
-    return any(apply(partial('Prelude\\equals'), $item), $iterator);
+function elem($item, $iterator) {
+    return any(apply(partial($item), 'Prelude\equals'), $iterator);
 }
-
 
 /**
  * @param $item
@@ -178,7 +210,7 @@ function contains($item, $iterator) {
  * @return mixed
  */
 function pluck($item, $iterator) {
-    return map(apply(partial('Prelude\\pick'), $item), $iterator);
+    return map(apply(partial($item), 'Prelude\pick'), $iterator);
 }
 
 /**
@@ -209,7 +241,7 @@ function drop($size, $collection) {
  * @return mixed
  */
 function takeStart($size, $collection) {
-    return col($collection, array_slice(ary($collection), 0, $size));
+    return array_slice($collection, 0, $size);
 }
 
 /**
@@ -218,7 +250,7 @@ function takeStart($size, $collection) {
  * @return mixed
  */
 function takeEnd($size, $collection) {
-    return col($collection, array_slice(ary($collection), 0 - $size));
+    return array_slice($collection, 0 - $size);
 }
 
 /**
@@ -228,11 +260,11 @@ function takeEnd($size, $collection) {
  */
 function takeWhile(callable $predicate, $collection) {
     $array = [];
-    foreach (ary($collection) as $item) {
+    foreach ($collection as $item) {
         if (!$predicate($item)) break;
         $array[] = $item;
     }
-    return col($collection, $array);
+    return $array;
 }
 
 /**
@@ -256,7 +288,7 @@ function takeGenerator($size, Generator $collection) {
  * @return mixed
  */
 function dropStart($size, $collection) {
-    return col($collection, array_slice(ary($collection), $size));
+    return array_slice($collection, $size);
 }
 
 /**
@@ -265,7 +297,7 @@ function dropStart($size, $collection) {
  * @return mixed
  */
 function dropEnd($size, $collection) {
-    return col($collection, array_slice(ary($collection), 0, 0 - $size));
+    return array_slice($collection, 0, 0 - $size);
 }
 
 /**
@@ -274,12 +306,11 @@ function dropEnd($size, $collection) {
  * @return mixed
  */
 function dropWhile(callable $predicate, $collection) {
-    $array = ary($collection);
-    foreach ($array as $key => $item) {
+    foreach ($collection as $key => $item) {
         if (!$predicate($item)) break;
-        unset($array[$key]);
+        unset($collection[$key]);
     }
-    return col($collection, array_values($array));
+    return array_values($collection);
 }
 
 /**
@@ -307,10 +338,10 @@ function dropGenerator($size, Generator $collection) {
  */
 function zip(array ...$arrays) {
     $zipped = [];
-    $matrix = map(apply(partial(min(map('count', $arrays))), 'Prelude\take'), $arrays);
+    $matrix = map(apply(partial(min(map('count', $arrays))), 'Prelude\Collection\take'), $arrays);
     while(!all('Prelude\not', $matrix)) {
-        $zipped[] = concat(map('Prelude\head', $matrix));
-        $matrix = map('Prelude\tail', $matrix);
+        $zipped = append($zipped, map('Prelude\Collection\head', $matrix));
+        $matrix = map('Prelude\Collection\tail', $matrix);
     }
     return $zipped;
 }
@@ -327,7 +358,7 @@ function unzip(array $array) {
  * @param array $array
  * @return array
  */
-function toPairs(array $array) {
+function pairs(array $array) {
     return zip(array_keys($array), $array);
 }
 
@@ -335,8 +366,8 @@ function toPairs(array $array) {
  * @param array $array
  * @return array
  */
-function fromPairs(array $array) {
-    return array_combine(concat(map('Prelude\head', $array)), concat(map('Prelude\last', $array)));
+function unpairs(array $array) {
+    return array_combine(map('Prelude\Collection\head', $array), map('Prelude\Collection\last', $array));
 }
 
 // Lists Generators

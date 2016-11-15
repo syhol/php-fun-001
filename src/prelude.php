@@ -468,7 +468,7 @@ function setArity(callable $callable, $arity) {
 function curry(callable $callable, $count = null) {
     $count = is_null($count) ? getArity($callable) : $count;
     return $count === 0 ? $callable : function (...$params) use($callable, $count) {
-        $partial = apply(partial(...$params), $callable);
+        $partial = apply(partial(...$params), $callable); /** @type $partial callable */
         return count($params) >= $count ? $partial() : curry($partial, $count - count($params));
     };
 }
