@@ -24,6 +24,11 @@ abstract class Record implements Monad, Monoid, Show, Read
     {
         // TODO: Implement pure() method.
     }
+    
+    public function export()
+    {
+        // TODO: Implement export() method.
+    }
 
     public function bind(callable $callable)
     {
@@ -40,7 +45,7 @@ abstract class Record implements Monad, Monoid, Show, Read
         // TODO: Implement append() method.
     }
 
-    public function concat($value)
+    public function concat()
     {
         // TODO: Implement concat() method.
     }

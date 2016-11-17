@@ -269,7 +269,7 @@ function compose(callable $callable1, callable $callable2) {
 
 /**
  * Create a partial application function for the start of the parameter list
- * @example apply(partial(1, 2, 3), $callable)
+ * @example invoke(partial(1, 2, 3), $callable)
  * @param array $params
  * @return Closure
  */
@@ -283,7 +283,7 @@ function partial(...$params) {
 
 /**
  * Create a partial application function for the end of the parameter list
- * @example apply(partialEnd(1, 2, 3), $callable)
+ * @example invoke(partialEnd(1, 2, 3), $callable)
  * @param array $params
  * @return Closure
  */
@@ -297,7 +297,7 @@ function partialEnd(...$params) {
 
 /**
  * Create a partial application function for an indexed argument
- * @example apply(partialAt(1, 2), $callable)
+ * @example invoke(partialAt(1, 2), $callable)
  * @param $index
  * @param $param
  * @return Closure
@@ -310,7 +310,7 @@ function partialAt($index, $param) {
 
 /**
  * Create a partial application function for a map of indexed arguments
- * @example apply(partialAt([1 => 2, 3 => 4]), $callable)
+ * @example invoke(partialAt([1 => 2, 3 => 4]), $callable)
  * @param $map
  * @return Closure
  */
@@ -322,7 +322,7 @@ function partialsAt($map) {
 
 /**
  * Create a partial application function for a named argument
- * @example apply(partialFor('foo', 3), $callable)
+ * @example invoke(partialFor('foo', 3), $callable)
  * @param $name
  * @param $param
  * @return Closure
@@ -335,7 +335,7 @@ function partialFor($name, $param) {
 
 /**
  * Create a partial application function for a map of named arguments
- * @example apply(partialsFor(['bob' => 2, 'foo' => 4]), $callable)
+ * @example invoke(partialsFor(['bob' => 2, 'foo' => 4]), $callable)
  * @param $map
  * @return Closure
  */
@@ -350,7 +350,7 @@ function partialsFor($map) {
  * @param array ...$params
  * @return mixed
  */
-function apply(callable $callable, ...$params) {
+function invoke(callable $callable, ...$params) {
     return $callable(...$params);
 }
 
@@ -468,7 +468,7 @@ function setArity(callable $callable, $arity) {
 function curry(callable $callable, $count = null) {
     $count = is_null($count) ? getArity($callable) : $count;
     return $count === 0 ? $callable : function (...$params) use($callable, $count) {
-        $partial = apply(partial(...$params), $callable); /** @type $partial callable */
+        $partial = invoke(partial(...$params), $callable); /** @type $partial callable */
         return count($params) >= $count ? $partial() : curry($partial, $count - count($params));
     };
 }

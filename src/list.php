@@ -4,11 +4,53 @@ namespace Prelude\Collection;
 
 use Exception;
 use Generator;
-use function Prelude\apply;
+use function Prelude\invoke;
+use Prelude\Contract\Applicative;
+use Prelude\Contract\Functor;
+use Prelude\Contract\Monad;
+use Prelude\Data\Collection;
+use Prelude\Data\Just;
+use Prelude\Data\Map;
+use Prelude\Data\Str;
 use function Prelude\flip;
 use function Prelude\partial;
+use Traversable as BaseTraversable;
 
 // Collections and Mapping
+
+/**
+ * @param $collection
+ * @return Functor
+ */
+function getFunctor($collection) {
+    return getMonad($collection);
+}
+
+/**
+ * @param $collection
+ * @return Applicative
+ */
+function getApplicative($collection) {
+    return getMonad($collection);
+}
+
+/**
+ * @param $collection
+ * @return Monad
+ */
+function getMonad($collection) {
+    if (is_array($collection)) {
+        return array_keys($collection) === range(0, count($collection) - 1)
+            ? new Collection($collection)
+            : new Map($collection);
+    } elseif ($collection instanceof BaseTraversable) {
+        return new Collection(iterator_to_array($collection));
+    } elseif (is_string($collection)) {
+        return new Str($collection);
+    } else {
+        return new Just($collection);
+    }
+}
 
 /**
  * @param string|array|\Countable $item
@@ -80,14 +122,36 @@ function foldl(callable $callable, $initial, array $array) {
 
 /**
  * @param callable $callable
- * @param array $array
- * @return array
+ * @param $collection
+ * @return mixed
  */
-function map(callable $callable, array $array) {
-    foreach ($array as $key => $value) {
-        $array[$key] = $callable($value);
-    }
-    return $array;
+function map(callable $callable, $collection) {
+    return $collection instanceof Functor
+        ? $collection->map($callable)
+        : getFunctor($collection)->map($callable)->export();
+}
+
+/**
+ * @param $ap1
+ * @param $ap2
+ * @return mixed
+ */
+function apply($ap1, $ap2) {
+    $ap2 = $ap2 instanceof Applicative ? $ap2 : getApplicative($ap2);
+    return $ap1 instanceof Applicative
+        ? $ap1->apply($ap2)
+        : getApplicative($ap1)->apply($ap2)->export();
+}
+
+/**
+ * @param $collection
+ * @param callable $callable
+ * @return mixed
+ */
+function bind($collection, callable $callable) {
+    return $collection instanceof Monad
+        ? $collection->bind($callable)
+        : getMonad($collection)->bind($callable)->export();
 }
 
 /**
@@ -122,7 +186,7 @@ function last($array) {
 
 /**
  * @param $array
- * @return Generator
+ * @return mixed
  */
 function tail($array) {
     return drop(1, $array);
@@ -130,7 +194,7 @@ function tail($array) {
 
 /**
  * @param $array
- * @return Generator
+ * @return mixed
  */
 function init($array) {
     return drop(-1, $array);
@@ -201,7 +265,7 @@ function all(callable $callable, $array) {
  * @return bool
  */
 function elem($item, $iterator) {
-    return any(apply(partial($item), 'Prelude\equals'), $iterator);
+    return any(invoke(partial($item), 'Prelude\equals'), $iterator);
 }
 
 /**
@@ -226,13 +290,13 @@ function values($iterator) {
  * @return mixed
  */
 function pluck($item, $iterator) {
-    return map(apply(partial($item), 'Prelude\pick'), $iterator);
+    return map(invoke(partial($item), 'Prelude\pick'), $iterator);
 }
 
 /**
  * @param $size
  * @param $collection
- * @return Generator
+ * @return mixed
  */
 function take($size, $collection) {
     if ($collection instanceof Generator) return takeGenerator($size, $collection);
@@ -354,7 +418,7 @@ function dropGenerator($size, Generator $collection) {
  */
 function zip(array ...$arrays) {
     $zipped = [];
-    $matrix = map(apply(partial(min(map('count', $arrays))), 'Prelude\Collection\take'), $arrays);
+    $matrix = map(invoke(partial(min(map('count', $arrays))), 'Prelude\Collection\take'), $arrays);
     while(!all('Prelude\not', $matrix)) {
         $zipped = append($zipped, map('Prelude\Collection\head', $matrix));
         $matrix = map('Prelude\Collection\tail', $matrix);

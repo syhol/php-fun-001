@@ -25,4 +25,9 @@ class Just extends Maybe
     {
         // TODO: Implement bind() method.
     }
+
+    public function export()
+    {
+        // TODO: Implement export() method.
+    }
 }
