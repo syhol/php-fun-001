@@ -17,11 +17,6 @@ class Str implements Monad
         // TODO: Implement map() method.
     }
 
-    public function pure($value)
-    {
-        // TODO: Implement pure() method.
-    }
-
     public function bind(callable $callable)
     {
         // TODO: Implement bind() method.
@@ -30,5 +25,10 @@ class Str implements Monad
     public function export()
     {
         // TODO: Implement export() method.
+    }
+
+    public static function pure($value)
+    {
+        // TODO: Implement pure() method.
     }
 }

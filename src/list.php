@@ -4,11 +4,70 @@ namespace Prelude\Collection;
 
 use Exception;
 use Generator;
+use Prelude\Contract\Monoid;
+use Prelude\Data\Nothing;
 use function Prelude\invoke;
+use Prelude\Contract\Applicative;
+use Prelude\Contract\Functor;
+use Prelude\Contract\Monad;
+use Prelude\Data\Vector;
+use Prelude\Data\Just;
+use Prelude\Data\Map;
+use Prelude\Data\Str;
 use function Prelude\flip;
 use function Prelude\partial;
+use Traversable as BaseTraversable;
 
 // Collections and Mapping
+
+/**
+ * @param $collection
+ * @return Monoid
+ * @throws Exception
+ */
+function getMonoid($collection) {
+    if ($collection instanceof Monoid) return $collection;
+    $monoid = getMonad($collection);
+    if ($monoid instanceof Monoid) return $collection;
+    throw new Exception('Can\'t find a monoid for value: ' . var_export($collection));
+}
+/**
+ * @param $collection
+ * @return Functor
+ */
+function getFunctor($collection) {
+    return ($collection instanceof Functor) ? $collection : getMonad($collection);
+}
+
+/**
+ * @param $collection
+ * @return Applicative
+ */
+function getApplicative($collection) {
+    return ($collection instanceof Applicative) ? $collection : getMonad($collection);
+}
+
+/**
+ * @param $collection
+ * @return Monad
+ */
+function getMonad($collection) {
+    return $collection instanceof Monad ? $collection
+        : is_array($collection) && isAssociative($collection) ? new Vector($collection)
+        : is_array($collection) && (!isAssociative($collection)) ? new Map($collection)
+        : $collection instanceof BaseTraversable ? new Vector(iterator_to_array($collection))
+        : is_string($collection) ? new Str($collection)
+        : is_null($collection) ? new Nothing
+        : new Just($collection);
+}
+
+/**
+ * @param array $array
+ * @return bool
+ */
+function isAssociative(array $array) {
+    return array_keys($array) !== range(0, count($array) - 1);
+}
 
 /**
  * @param string|array|\Countable $item
@@ -38,21 +97,22 @@ function uncons(array $array) {
 }
 
 /**
- * @param array $array1
- * @param array $array2
- * @param \array[] $more
- * @return array
+ * @param $array
+ * @param $more
+ * @return Monoid
  */
-function append(array $array1, array $array2, array ...$more) {
-    return array_merge($array1, $array2, ...$more);
+function append(array $array, array ...$more) {
+    return foldl(function (Monoid $monoid, $array) {
+        return $monoid->append(getMonoid($array));
+    }, getMonoid($array), $more);
 }
 
 /**
  * @param array $collections
  * @return array
  */
-function concat(array $collections) {
-    return array_merge(...$collections);
+function concat($collections) {
+    return getMonoid($collections)->concat();
 }
 
 /**
@@ -84,7 +144,32 @@ function foldl(callable $callable, $initial, array $array) {
  * @return mixed
  */
 function map(callable $callable, $collection) {
-    return array_map($callable, $collection);
+    return $collection instanceof Functor
+        ? $collection->map($callable)
+        : getFunctor($collection)->map($callable)->export();
+}
+
+/**
+ * @param $ap1
+ * @param $ap2
+ * @return mixed
+ */
+function apply($ap1, $ap2) {
+    $ap2 = $ap2 instanceof Applicative ? $ap2 : getApplicative($ap2);
+    return $ap1 instanceof Applicative
+        ? $ap1->apply($ap2)
+        : getApplicative($ap1)->apply($ap2)->export();
+}
+
+/**
+ * @param $collection
+ * @param callable $callable
+ * @return mixed
+ */
+function bind($collection, callable $callable) {
+    return $collection instanceof Monad
+        ? $collection->bind($callable)
+        : getMonad($collection)->bind($callable)->export();
 }
 
 /**
@@ -202,6 +287,15 @@ function elem($item, $iterator) {
 }
 
 /**
+ * @param $item
+ * @param $iterator
+ * @return mixed
+ */
+function pluck($item, $iterator) {
+    return map(invoke(partial($item), 'Prelude\pick'), $iterator);
+}
+
+/**
  * @param $iterator
  * @return mixed
  */
@@ -215,15 +309,6 @@ function keys($iterator) {
  */
 function values($iterator) {
     return array_values($iterator);
-}
-
-/**
- * @param $item
- * @param $iterator
- * @return mixed
- */
-function pluck($item, $iterator) {
-    return map(invoke(partial($item), 'Prelude\pick'), $iterator);
 }
 
 /**

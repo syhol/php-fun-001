@@ -8,6 +8,6 @@ interface Functor
      * @return static
      */
     public function map(callable $callable);
-    public function pure($value);
+    public static function pure($value);
     public function export();
 }

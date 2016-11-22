@@ -20,11 +20,6 @@ abstract class Record implements Monad, Monoid, Show, Read
         // TODO: Implement map() method.
     }
 
-    public function pure($value)
-    {
-        // TODO: Implement pure() method.
-    }
-    
     public function export()
     {
         // TODO: Implement export() method.
@@ -58,5 +53,10 @@ abstract class Record implements Monad, Monoid, Show, Read
     public function __toString()
     {
         // TODO: Implement __toString() method.
+    }
+
+    public static function pure($value)
+    {
+        // TODO: Implement pure() method.
     }
 }

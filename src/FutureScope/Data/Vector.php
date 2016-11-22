@@ -7,7 +7,7 @@ use Prelude\Contract\Monoid;
 use Prelude\Contract\Show;
 use Prelude\Contract\Read;
 
-class Collection implements Monad, Monoid, Show, Read
+class Vector implements Monad, Monoid, Show, Read
 {
     public function apply(Functor $callable)
     {
@@ -17,11 +17,6 @@ class Collection implements Monad, Monoid, Show, Read
     public function map(callable $callable)
     {
         // TODO: Implement map() method.
-    }
-
-    public function pure($value)
-    {
-        // TODO: Implement pure() method.
     }
 
     public function export()
@@ -57,5 +52,10 @@ class Collection implements Monad, Monoid, Show, Read
     public function __toString()
     {
         // TODO: Implement __toString() method.
+    }
+
+    public static function pure($value)
+    {
+        // TODO: Implement pure() method.
     }
 }
