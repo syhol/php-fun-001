@@ -1,26 +1,18 @@
 {
-    "name": "syhol/php-fun-001",
-    "type": "library",
-    "license": "MIT",
-    "minimum-stability": "dev",
-    "autoload" : {
-        "files" : [
-            "src/prelude.php",
-            "src/list.php",
-            "src/test.php"
-        ]
-    },
-    "bin": [
-        "./bin/fnunit"
-    ],
-    "scripts": {
-        "test": "./bin/fnunit"
-    },
-    "extra": {
-        "fnunit": {
-            "tests": [
-                "./test/*"
-            ]
-        }
-    }
+  "name": "syhol/php-fun-001",
+  "type": "library",
+  "license": "MIT",
+  "minimum-stability": "dev",
+  "require" : {
+    "danielstjules/pho": "dev-master"
+  },
+  "autoload" : {
+    "files" : [
+      "src/prelude.php",
+      "src/list.php"
+    ]
+  },
+  "scripts": {
+    "test": "./vendor/bin/pho --reporter spec"
+  }
 }
