@@ -134,6 +134,22 @@ function modulus($a, $b) {
     return $a % $b;
 }
 
+/**
+ * @param $a
+ * @return bool
+ */
+function even($a) {
+    return equals(modulus($a, 2), 0);
+}
+
+/**
+ * @param $a
+ * @return bool
+ */
+function odd($a) {
+    return not(equals(modulus($a, 2), 0));
+}
+
 // Array Access
 
 /**

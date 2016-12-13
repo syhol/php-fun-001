@@ -6,24 +6,6 @@ use function Prelude\Collection\take;
 use function Prelude\Collection\reverse;
 use function Prelude\Collection\sum;
 use function Prelude\Collection\product;
-use function Prelude\id;
-
-describe('Prelude\id', function () {
-    it('should work with a string', function() {
-        expect(id('foo'))->toBe('foo');
-    });
-    it('should work with an int', function() {
-        expect(id(123))->toBe(123);
-    });
-    it('should work with an array', function() {
-        expect(id([1, 2]))->toBe([1, 2]);
-    });
-    it('should work with an object', function() {
-        $obj = (object)['foo' => 'bar'];
-        expect(id($obj))->toBe($obj);
-        expect(id((object)['foo' => 'bar']))->not()->toBe((object)['foo' => 'bar']);
-    });
-});
 
 describe('Prelude\Collection\take', function () {
     it('should work with a string', function() {
